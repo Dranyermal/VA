@@ -1,0 +1,27 @@
+name: "VA"
+title: "Visual Analytics"
+description: |
+  My Website
+output_dir: "_site"
+navbar:
+  right:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+  left:
+    - text: "Take Home Exercise"
+      href: index.html
+      menu:
+      - text: "Take Home Exercise 1"
+        href: takehome1.html
+      - text: "Take Home Exercise 2"
+        href: takehome2.html
+    - text: "Data Viz Makeover"
+      href: about.html
+      menu:
+      - text: "DataViz1"
+        href: about.html
+      - text: "DataViz2"
+        href: about.html
+output: distill::distill_article
