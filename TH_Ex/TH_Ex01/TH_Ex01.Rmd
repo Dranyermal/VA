@@ -1,0 +1,139 @@
+---
+title: "Take Home Exercise 1"
+description: |
+  In this exercise, we shall apply the skills we had learned in last two lessons to create data visualisation by using ggplot2.
+author:
+  - name: Reynard Lam 
+    url: https://www.linkedin.com/in/reynard-lam-570644133/
+    affiliation: School of Computing and Information Systems, SMU
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# 1.0 Task 1
+
+***Problem Statement: *** Create a pareto chart showing the distribution of returns by product sub-category. The data file to be used is the superstore-2021.xls file.
+
+
+# 1.1 Installing and Launching R Packages
+
+Before we get started, we will need to install the relevant R packages. 
+
+
+```{r echo = TRUE}
+packages = c('ggpubr', 'tidyverse', 'readxl', 'knitr')
+
+for(p in packages){library
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+
+  library(p, character.only = T)
+}
+```
+
+## 1.2 Importing Data
+
+First, let us import the data into R by using *read_xls()*  of **readxl** package.  
+
+```{r echo = TRUE}
+orders <- read_xls("data/Superstore-2021.xls", sheet = "Orders")
+returns <- read_xls("data/Superstore-2021.xls", sheet = "Returns")
+
+
+```
+
+
+
+# 1.3 Joining the two data frames
+
+
+```{r echo = TRUE}
+joined_tab <- left_join(returns, orders,
+                        by = c('Order ID' = 'Order ID'))
+
+freq_returned <- joined_tab %>% 
+  count(`Sub-Category`) %>%
+  rename(Returns = n)
+
+freq_sorted <- freq_returned %>%
+  arrange(desc(Returns))
+
+freq_cum <- freq_sorted %>%
+  mutate(cumfreq = cumsum(Returns))
+
+freq_cum$`Sub-Category` <- factor(freq_cum$`Sub-Category`, levels = freq_cum$`Sub-Category`)
+```
+
+
+# 1.4 Creating the Pareto chart
+
+```{r}
+options(repr.plot.width=12, repr.plot.height=5)
+ggplot(freq_cum, aes(x=`Sub-Category`, y=Returns)) + geom_bar(stat = "identity", aes(y=Returns), fill = 'lightgreen')+
+  geom_point(aes(x=`Sub-Category`, y=cumfreq), color = 'grey20', pch=16, size=1) + 
+  geom_path(aes(y=cumfreq, group=1), colour="grey20", size=0.9) +
+  xlab('Sub-Category') +
+  scale_y_continuous(
+    name = 'Returns (absolute frequency)', breaks = seq(0,3500, by = 300), minor_breaks=seq(0,3500,100),
+    sec.axis = sec_axis(~.*1/sum(freq_cum$Returns),name = 'Cumulative Frequency (%)', breaks = seq(0,1, by=0.1),
+    labels= scales::percent_format()))+
+    theme(panel.background = element_rect(fill = 'white', colour = 'grey60', size = 0.5, linetype = 'solid'),
+          panel.grid.major = element_line(size = 0.8, linetype = 'solid', colour = 'grey85'),
+          panel.grid.minor = element_line(size = 0.3, linetype = 'solid', colour = 'grey95'),
+          text = element_text(size = 7.5)) +
+
+    ggtitle("Pareto Chart of Returns with Cumulative Frequency by Sub-Category")
+                        
+
+   
+
+```
+
+
+# 2.0 Task 2
+
+***Problem Statement: *** Create an age-sex pyramid showing the demographic structure of Singapore by age cohort and gender. For this task, the data titled *Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2021* should be used.
+
+
+# 2.1 Importing Data
+
+Let us import the data into R by using *read.csv*  of **readr** package.  
+
+```{r echo = TRUE}
+popdata <- read.csv("data/respopagesextod2021.csv")
+
+
+```
+
+# 2.2 Cleaning of the data
+
+
+```{r echo = TRUE}
+
+popdata <- aggregate(formula = Pop ~ Sex + AG, data = popdata, FUN = sum)
+
+## sort data by first by gender, then by age groups
+popdata <- with(popdata, popdata[order(Sex,AG),])
+
+## only use the three variables age, gender and population 
+popdata <- popdata[,c("AG","Sex","Pop")]
+
+## switch males to negative values so they appear on the left
+popdata$Pop <- ifelse(popdata$Sex == "Males", -1*popdata$Pop, popdata$Pop)
+
+
+## pyramid charts are two barcharts with axes flipped
+ggplot(popdata, aes(x = AG, y = Pop, fill = Sex)) +
+  geom_bar(data = subset(popdata, Sex == "Females"), stat = "identity") +
+  geom_bar(data = subset(popdata, Sex == "Males"), stat = "identity") +
+  scale_y_continuous(labels = paste0(as.character(c(seq(2, 0, -1), seq(1, 2, 1))), "m")) +
+  coord_flip()
+
+```
+

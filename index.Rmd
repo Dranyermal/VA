@@ -1,7 +1,7 @@
 ---
 title: "Visual Analytics"
 description: |
-  This website consists of a collection of works done for Visual Analytics
+  This website consists of a collection of works done for Visual Analytics. Please access the links at the top to view Take-Home Exercise 1.
 site: distill::distill_website
 ---
 
