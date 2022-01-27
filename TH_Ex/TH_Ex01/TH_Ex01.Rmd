@@ -111,7 +111,7 @@ popdata <- read.csv("data/respopagesextod2021.csv")
 
 ```
 
-# 2.2 Cleaning of the data
+# 2.2 Cleaning of the data and creating the pyramid
 
 
 ```{r echo = TRUE}
@@ -132,7 +132,7 @@ popdata$Pop <- ifelse(popdata$Sex == "Males", -1*popdata$Pop, popdata$Pop)
 ggplot(popdata, aes(x = AG, y = Pop, fill = Sex)) +
   geom_bar(data = subset(popdata, Sex == "Females"), stat = "identity") +
   geom_bar(data = subset(popdata, Sex == "Males"), stat = "identity") +
-  scale_y_continuous(labels = paste0(as.character(c(seq(2, 0, -1), seq(1, 2, 1))), "m")) +
+  scale_y_continuous(labels = paste0(as.character(c(seq(200, 0, -100), seq(100, 200, 100))), "k")) +
   coord_flip()
 
 ```
