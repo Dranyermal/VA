@@ -37,7 +37,7 @@ for(p in packages){library
 }
 ```
 
-## 1.2 Importing Data
+## 1.2 Importing Data 
 
 First, let us import the data into R by using *read_xls()*  of **readxl** package.  
 
@@ -49,8 +49,20 @@ returns <- read_xls("data/Superstore-2021.xls", sheet = "Returns")
 ```
 
 
+# 1.3 Challenges faced
 
-# 1.3 Joining the two data frames
+Before creating the pareto chart, there are a few challenges to deal with.
+
+1) The Returns information is found in a separate sheet from Orders
+2) The data would have to be ordered and added in order to display the information in a pareto chart.
+
+In order to overcome the challenges, the following steps were taken:
+
+1) The Orders and Returns data frames were joined via left join via the key "Order ID"
+2) The Returns column was arranged via descending order, and the cumulative number of Returns were calculated.
+
+
+# 1.4 Joining the two data frames
 
 
 ```{r echo = TRUE}
@@ -71,7 +83,7 @@ freq_cum$`Sub-Category` <- factor(freq_cum$`Sub-Category`, levels = freq_cum$`Su
 ```
 
 
-# 1.4 Creating the Pareto chart
+# 1.5 Creating the Pareto chart
 
 ```{r}
 options(repr.plot.width=12, repr.plot.height=5)
@@ -111,7 +123,19 @@ popdata <- read.csv("data/respopagesextod2021.csv")
 
 ```
 
-# 2.2 Cleaning of the data and creating the pyramid
+# 2.2 Challenges faced
+
+Before creating the age-sex pyramid, there were a few challenges faced.
+
+1) The data provided had split the population by area, and the data has to be aggregated
+2) Both populations of males and females were positive numbers, and placing them on the x-axis of a chart would make them both go in the right direction
+
+In order to resolve the challenges:
+
+1) The data were aggregated by Sex, followed by age group via formulas in R
+2) The population of males were multiplied by -1 in order to flip the data on the x-axis and better depict the pyramid chart
+
+# 2.3 Cleaning of the data and creating the pyramid
 
 
 ```{r echo = TRUE}
