@@ -6,7 +6,7 @@
       "description": "Some additional details about the website",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2022-01-07T21:25:18+08:00"
+      "last_modified": "2022-01-27T16:23:29+08:00"
     },
     {
       "path": "index.html",
@@ -14,11 +14,7 @@
       "description": "This website consists of a collection of works done for Visual Analytics. Please access the links at the top to view Take-Home Exercise 1.\n",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-<<<<<<< HEAD
-      "last_modified": "2022-01-26T15:00:31+08:00"
-=======
-      "last_modified": "2022-01-07T21:38:25+08:00"
->>>>>>> 95eb157fee4f9d47f6bdd98bd4c2281c0c376703
+      "last_modified": "2022-01-27T16:23:52+08:00"
     }
   ],
   "collections": []
