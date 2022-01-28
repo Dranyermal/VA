@@ -49,7 +49,9 @@ returns <- read_xls("data/Superstore-2021.xls", sheet = "Returns")
 ```
 
 
-# 1.3 Challenges faced
+# 1.3 Challenges faced and considerations for Pareto chart
+
+A pareto chart is able to analyze data about the frequency of problems of causes in a process. It is also able to identify the most significant causes at first glance. In this particular business problem, we would like to look at which product sub-category had been contributing to the most returns, and hence a pareto chart will be able to break down the information quickly.
 
 Before creating the pareto chart, there are a few challenges to deal with.
 
@@ -61,6 +63,8 @@ In order to overcome the challenges, the following steps were taken:
 1) The Orders and Returns data frames were joined via left join via the key "Order ID"
 2) The Returns column was arranged via descending order, and the cumulative number of Returns were calculated.
 
+
+Lastly, during the plotting of the pareto chart, *geom_col()* instead of *geom_bar()* was used as the data was already counted during the pre-processing stage.
 
 # 1.4 Joining the two data frames
 
@@ -87,7 +91,7 @@ freq_cum$`Sub-Category` <- factor(freq_cum$`Sub-Category`, levels = freq_cum$`Su
 
 ```{r}
 options(repr.plot.width=12, repr.plot.height=5)
-ggplot(freq_cum, aes(x=`Sub-Category`, y=Returns)) + geom_bar(stat = "identity", aes(y=Returns), fill = 'lightgreen')+
+ggplot(freq_cum, aes(x=`Sub-Category`, y=Returns)) + geom_col(stat = "identity", aes(y=Returns), fill = 'lightgreen')+
   geom_point(aes(x=`Sub-Category`, y=cumfreq), color = 'grey20', pch=16, size=1) + 
   geom_path(aes(y=cumfreq, group=1), colour="grey20", size=0.9) +
   xlab('Sub-Category') +
@@ -123,17 +127,21 @@ popdata <- read.csv("data/respopagesextod2021.csv")
 
 ```
 
-# 2.2 Challenges faced
+# 2.2 Challenges faced and consideration for Pyramid chart
+
+In this particular problem, we would like to visualise the distribution of various age groups in a population. Normally, an ordinary bar chart would be able to visualise the data, but a pyramid chart would be a clearer depiction to show both sexes, male and female.
 
 Before creating the age-sex pyramid, there were a few challenges faced.
 
 1) The data provided had split the population by area, and the data has to be aggregated
 2) Both populations of males and females were positive numbers, and placing them on the x-axis of a chart would make them both go in the right direction
+3) There would be a common problem where the age group "5 to 9" would often be ordered higher on the chart instead of after "0 to 4"
 
 In order to resolve the challenges:
 
 1) The data were aggregated by Sex, followed by age group via formulas in R
 2) The population of males were multiplied by -1 in order to flip the data on the x-axis and better depict the pyramid chart
+3) There are a few ways to resolve this, including creating a character vector to manually reorder the rows, or even editing the data file directly to change the age group to "05 to 9" instead. In this exercise, we have edited the data file accordingly
 
 # 2.3 Cleaning of the data and creating the pyramid
 
@@ -155,9 +163,20 @@ popdata$Pop <- ifelse(popdata$Sex == "Males", -1*popdata$Pop, popdata$Pop)
 ## pyramid charts are two barcharts with axes flipped
 ggplot(popdata, aes(x = AG, y = Pop, fill = Sex)) +
   geom_bar(data = subset(popdata, Sex == "Females"), stat = "identity") +
-  geom_bar(data = subset(popdata, Sex == "Males"), stat = "identity") +
+  geom_bar(data = subset(popdata, Sex == "Males"), stat = "identity") + xlab('Age Group') + ylab('Population') +
   scale_y_continuous(labels = paste0(as.character(c(seq(200, 0, -100), seq(100, 200, 100))), "k")) +
   coord_flip()
 
 ```
+
+
+# 3.0 Comparison of R to other visualisation softwares such as Tableau
+
+Tableau is a fantastic tool for pattern discovery using data visualisation, and it is definitely easy to use to create stunning visualisations. In contrast, R has a slightly steeper learning curve in terms of learning the language, but the benefits of R include access to countless libraries for data manipulation and data visualisation.
+
+In comparison, although Tableau allows for some degree of customisation regarding data manipulation and visualisation, a large degree of its data visualisation is fixed to a certain template, whereas for R, you are able to tweak certain aspects of the visualisation just by editing the lines of code.
+
+For example, in this exercise, with just a few lines of code, a pareto chart and age-sex pyramid could be generated. Whereas in Tableau, more clicks are required to conduct the joining of the dataframes as well as creating Calculations in order to generate the Age-Sex Pyramid.
+
+
 
