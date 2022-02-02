@@ -1,0 +1,118 @@
+---
+title: "Take Home Exercise 2"
+description: |
+  In this exercise, we shall apply the skills we had learned in last two lessons to create data visualisation by using ggplot2.
+author:
+  - name: Reynard Lam 
+    url: https://www.linkedin.com/in/reynard-lam-570644133/
+    affiliation: School of Computing and Information Systems, SMU
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# 1.0 Task 1
+
+***Problem Statement: *** In this Take-Home Exercise, we would like to apply appropriate interactivity and animation methods to design an age-sex pyramid based data visualisation to show the changes of demographic structure of Singapore by age cohort and gender between 2000-2020 at planning area level.
+
+The two datasets provided are *Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2000-2010* and *Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2011-2020*, which are downloaded from the [Department of Statistics](https://www.singstat.gov.sg/) webpage.
+
+
+# 1.1 Installing and Launching R Packages
+
+Before we get started, we will need to install the relevant R packages. 
+
+
+```{r echo = TRUE}
+packages = c('ggpubr', 'tidyverse', 'readxl', 'knitr', 'gganimate', 'gapminder', 'gifski')
+
+for(p in packages){library
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+
+  library(p, character.only = T)
+}
+```
+
+## 1.2 Importing Data 
+
+First, let us import the data into R by using the *read.csv* function. Note that there are two datasets.
+
+```{r echo = TRUE}
+pop2010 <- read.csv("data/pop2010.csv")
+pop2020 <- read.csv("data/pop2020.csv")
+
+
+```
+
+
+# 1.3 Challenges faced and considerations for Pareto chart
+
+In this particular problem, we would like to visualise the distribution of various age groups in a population. Normally, an ordinary bar chart would be able to visualise the data, but a pyramid chart would be a clearer depiction to show both sexes, male and female.
+
+Before creating the age-sex pyramid, there were a few challenges faced.
+
+1) The data provided had split the population by area, and the data has to be aggregated
+2) Both populations of males and females were positive numbers, and placing them on the x-axis of a chart would make them both go in the right direction
+3) There would be a common problem where the age group "5 to 9" would often be ordered higher on the chart instead of after "0 to 4"
+4) Lastly, it was important to visualise the data across the years 2000 - 2020, and an interactive feature will have to be included
+
+In order to resolve the challenges:
+
+1) The data were aggregated by Sex, followed by age group via formulas in R
+2) The population of males were multiplied by -1 in order to flip the data on the x-axis and better depict the pyramid chart
+3) There are a few ways to resolve this, including creating a character vector to manually reorder the rows, or even editing the data file directly to change the age group to "05 to 9" instead. In this exercise, we have edited the data file accordingly
+4) An animation-style data visualisation was used using the packages *Gapminder*, *gganimate* and *gifski*.
+
+
+# 1.4 Joining the two data frames and cleaning of data
+
+
+```{r echo = TRUE}
+
+popfinal <- rbind(pop2010,pop2020)
+
+## use the four variables age, gender and population 
+popdata <- popfinal[,c("AG","Sex","Pop", "Time")]
+
+popdata <- aggregate(formula = Pop ~ Sex + AG + Time, data = popfinal, FUN = sum)
+
+## sort data by first by gender, then by age groups
+popdata <- with(popdata, popdata[order(Sex,AG),])
+
+## switch males to negative values so they appear on the left
+popdata$Pop <- ifelse(popdata$Sex == "Males", -1*popdata$Pop, popdata$Pop)
+
+
+    
+```
+
+
+# 1.5 Creating the pyramid
+
+
+```{r echo = TRUE}
+
+
+## pyramid charts are two barcharts with axes flipped
+q <- ggplot(popdata, aes(x = AG, y = Pop, fill = Sex)) +
+  geom_bar(data = subset(popdata, Sex == "Females"), stat = "identity") +
+  geom_bar(data = subset(popdata, Sex == "Males"), stat = "identity") + xlab('Age Group') + ylab('Population') +
+  scale_y_continuous(labels = paste0(as.character(c(seq(4, 0, -2), seq(2, 4, 2))), "M")) +
+  coord_flip() +
+labs(title = 'Year: {frame_time}') +
+transition_time(Time) +
+ease_aes('linear')
+
+animate(q, renderer = gifski_renderer())
+
+```
+
+
+
+
