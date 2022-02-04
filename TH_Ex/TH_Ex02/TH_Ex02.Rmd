@@ -8,7 +8,10 @@ author:
     affiliation: School of Computing and Information Systems, SMU
     affiliation_url: https://scis.smu.edu.sg/
 date: "`r Sys.Date()`"
-output: distill::distill_article
+output: 
+  distill::distill_article:
+    code_folding: true
+        
 ---
 
 ```{r setup, include=FALSE}
@@ -26,9 +29,8 @@ The two datasets provided are *Singapore Residents by Planning Area / Subzone, A
 
 Before we get started, we will need to install the relevant R packages. 
 
-
 ```{r echo = TRUE}
-packages = c('ggpubr', 'tidyverse', 'readxl', 'knitr', 'gganimate', 'gapminder', 'gifski')
+packages = c('ggpubr', 'tidyverse', 'readxl', 'knitr', 'gganimate', 'gapminder', 'gifski', 'manipulate', 'kableExtra','plotly')
 
 for(p in packages){library
   if(!require(p, character.only = T)){
@@ -39,19 +41,16 @@ for(p in packages){library
 }
 ```
 
-## 1.2 Importing Data 
+# 1.2 Importing Data 
 
 First, let us import the data into R by using the *read.csv* function. Note that there are two datasets.
 
-```{r echo = TRUE}
+```{r}
 pop2010 <- read.csv("data/pop2010.csv")
 pop2020 <- read.csv("data/pop2020.csv")
-
-
 ```
 
-
-# 1.3 Challenges faced and considerations for Pareto chart
+# 1.3 Challenges faced and considerations for Pyramid Visualisation
 
 In this particular problem, we would like to visualise the distribution of various age groups in a population. Normally, an ordinary bar chart would be able to visualise the data, but a pyramid chart would be a clearer depiction to show both sexes, male and female.
 
@@ -60,59 +59,179 @@ Before creating the age-sex pyramid, there were a few challenges faced.
 1) The data provided had split the population by area, and the data has to be aggregated
 2) Both populations of males and females were positive numbers, and placing them on the x-axis of a chart would make them both go in the right direction
 3) There would be a common problem where the age group "5 to 9" would often be ordered higher on the chart instead of after "0 to 4"
-4) Lastly, it was important to visualise the data across the years 2000 - 2020, and an interactive feature will have to be included
+4) For data in planning areas, there were some planning areas with a lack of data.
+5) Lastly, it was important to visualise the data across the years 2000 - 2020 via interactivity and animation methods
 
 In order to resolve the challenges:
 
 1) The data were aggregated by Sex, followed by age group via formulas in R
 2) The population of males were multiplied by -1 in order to flip the data on the x-axis and better depict the pyramid chart
 3) There are a few ways to resolve this, including creating a character vector to manually reorder the rows, or even editing the data file directly to change the age group to "05 to 9" instead. In this exercise, we have edited the data file accordingly
-4) An animation-style data visualisation was used using the packages *Gapminder*, *gganimate* and *gifski*.
+4) In order to resolve this issue, filtering must be carried out on the dataframe before conducting any visualisation.
+5) An interactive data visualisation was created to allow users to filter by Time as well as Planning Area. Also, an animation-style data visualisation was used using the packages *Gapminder*, *gganimate* and *gifski*.
 
 
 # 1.4 Joining the two data frames and cleaning of data
 
+Firstly, the two dataframes were joined together. Using the *group_by()* function, the data was able to be grouped by age, gender, time and planning area. Next, using the *summarise()* function, the number of residents was summed up in the Pop column for the groups. Lastly, the Time column was converted to integers using the *as.integer()* function.
+
+As described in the challenges above, there were some planning areas with no residents. In order to remove such planning areas, the *filter()* function was used to filter out planning areas with a count of 0, and the *select()* function was used to extract out these planning areas into a list.
+
+Lastly, the original dataset was filtered so that planning areas in the list were taken out of the dataset.
 
 ```{r echo = TRUE}
+popcombine <- rbind(pop2010, pop2020)
 
-popfinal <- rbind(pop2010,pop2020)
+uncleanpop <- popcombine %>%
+  group_by(`AG`, `Sex`, `Time`, `PA`) %>%
+  summarise('Count'= sum(`Pop`)) %>%
+  ungroup()
 
-## use the four variables age, gender and population 
-popdata <- popfinal[,c("AG","Sex","Pop", "Time")]
+uncleanpop$Time = as.integer(uncleanpop$Time)
 
-popdata <- aggregate(formula = Pop ~ Sex + AG + Time, data = popfinal, FUN = sum)
+kable(head(uncleanpop))
 
-## sort data by first by gender, then by age groups
-popdata <- with(popdata, popdata[order(Sex,AG),])
+cleanpop <- uncleanpop %>%
+  select(`PA`, `Count`) %>%
+  group_by(PA) %>%
+  summarise(Total=sum(Count)) %>% 
+  filter(Total == 0) %>%
+  select(PA) %>%
+  ungroup
 
-## switch males to negative values so they appear on the left
-popdata$Pop <- ifelse(popdata$Sex == "Males", -1*popdata$Pop, popdata$Pop)
+popdata_list <- as.vector(cleanpop$PA)
 
 
-    
+popdata <- uncleanpop %>%
+  filter(!PA %in% popdata_list)
+
+kable(head(popdata))
+
 ```
 
 
-# 1.5 Creating the pyramid
-
+As per the previous Take-Home Exercise 1, the population of males were multiplied by -1 in order to flip the data on the x-axis and better depict the pyramid chart.
 
 ```{r echo = TRUE}
 
-
-## pyramid charts are two barcharts with axes flipped
-q <- ggplot(popdata, aes(x = AG, y = Pop, fill = Sex)) +
-  geom_bar(data = subset(popdata, Sex == "Females"), stat = "identity") +
-  geom_bar(data = subset(popdata, Sex == "Males"), stat = "identity") + xlab('Age Group') + ylab('Population') +
-  scale_y_continuous(labels = paste0(as.character(c(seq(4, 0, -2), seq(2, 4, 2))), "M")) +
-  coord_flip() +
-labs(title = 'Year: {frame_time}') +
-transition_time(Time) +
-ease_aes('linear')
-
-animate(q, renderer = gifski_renderer())
+popdata$nCount = ifelse(popdata$Sex == "Males", 
+                                 yes = -popdata$Count, 
+                                 no = popdata$Count)
 
 ```
 
+# 1.5 Animated Chart
+
+With the filtered data, an animated chart was plotted to show the total population over the years regardless of planning area.
+
+```{r}
+anifig <-
+  ggplot(popdata, aes(x = nCount, y = AG, fill = Sex)) +
+  geom_col() +
+  scale_x_continuous(breaks = seq(-150000, 150000, 50000), 
+                     labels = paste0(as.character(c(seq(150, 0, -50), seq(50, 150, 50))),"k")) +
+  labs (x = "Population", 
+        y = "Age Group", 
+        title='Singapore Age-Sex Population Pyramid') +
+  theme_bw() +
+  theme(axis.ticks.y = element_blank())
+  
+
+anifig + 
+  transition_time(Time) +
+  ease_aes('linear') +
+  labs (subtitle = 'Year: {frame_time}')
+
+```
+
+
+
+
+# 1.6 Interactive Chart
+
+The animated chart was no doubt useful, but perhaps we can customise it further by including filters for Planning Area as well as Time.
+
+In order to accomplish this, a for loop was used to extract out all unique values from the Planning Area column as well as the Time column.
+
+Besides creating the dropdown lists, annotations are also created to give better clarity to the interactive charts displayed later.
+
+```{r}
+year_list <- list()
+for (i in 1:length(unique(popdata$Time))) { 
+  year_list[[i]] <- list(method = "restyle",
+                         args = list("transforms[0].value", unique(popdata$Time)[i]),
+                         label = unique(popdata$Time)[i])
+}
+
+PA_list <- list()
+for (j in 1:length(unique(popdata$PA))) { 
+  PA_list[[j]] <- list(method = "restyle",
+                        args = list("transforms[1].value", unique(popdata$PA)[j]),
+                        label = unique(popdata$PA)[j])
+}
+
+annot <- list(list(text = "Select Planning Area:",
+                   x = 1.61,
+                   y = 0.63,
+                   xref = 'paper',
+                   yref = 'paper',
+                   showarrow = FALSE))
+```
+
+Finally, the interactive chart was then generated using *plot_ly()*. A tooltip was added for greater clarity, and aesthetic features were adjusted using the *layout*, and *updatemenus* function.
+
+```{r}
+fig <- plot_ly(popdata, 
+        x = ~nCount, 
+        y = ~AG,
+        type = 'bar', 
+        orientation = 'h',
+        hovertemplate = ~paste("<br>Age Group:", AG,
+                               "<br>Gender:", Sex,
+                               "<br>Population:", Count),
+        color = ~Sex,
+        transforms = list(list(type = 'filter',
+                               target = ~Time,
+                               operation = '=',
+                               value = unique(popdata$Time)[1]),
+                          list(type = 'filter',
+                               target = ~PA,
+                               operation = '=',
+                               value = unique(popdata$PA)[1]))
+                          )%>%
+  layout(bargap = 0.1, barmode = 'overlay',
+         xaxis = list(title = "Population",
+                      tickmode = 'array', tickvals = c(-10000, -8000, -6000, -4000, -2000, 0, 
+                                                       2000, 4000, 6000, 8000, 10000),
+                      ticktext = c('10k', '8k', '6k', '4k', '2k', '0', 
+                                   '2k', '4k', '6k', '8k', '10k')),
+         yaxis = list(title = "Age Group"),
+         title = 'Singapore Age-Sex Population Pyramid',
+         updatemenus = list(list(type = 'dropdown',
+                                 x = 1.6, y = 0.6,
+                                 buttons = PA_list)
+                            ),
+         sliders = list(list(
+                          active = 1, 
+                          currentvalue = list(prefix = "Year: "), 
+                          pad = list(t = 60), 
+                          steps = year_list)), 
+         annotations = annot)
+
+fig <- fig %>% layout(autosize = F)
+fig
+
+```
+
+
+
+
+
+# 1.7 Comparison of R to Tableau
+
+Tableau is a fantastic tool for pattern discovery using data visualisation, and it is definitely easy to use to create stunning visualisations. In contrast, R has a slightly steeper learning curve in terms of learning the language, but the benefits of R include access to countless libraries for data manipulation and data visualisation.
+
+In this Take-Home Exercise, it is definitely easier for Tableau to generate both interactive and animated charts as compared to R with the inbuilt Filters and Pages function. However, R allows for a greater degree of customizability in terms of appearance and aesthetic features.
 
 
 
