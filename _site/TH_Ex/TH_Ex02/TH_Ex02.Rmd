@@ -216,9 +216,8 @@ fig <- plot_ly(popdata,
                           currentvalue = list(prefix = "Year: "), 
                           pad = list(t = 60), 
                           steps = year_list)), 
-         annotations = annot)
+         annotations = annot, autosize = F)
 
-fig <- fig %>% layout(autosize = F)
 fig
 
 ```

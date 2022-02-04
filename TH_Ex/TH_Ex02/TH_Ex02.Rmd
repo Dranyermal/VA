@@ -132,7 +132,7 @@ anifig <-
                      labels = paste0(as.character(c(seq(150, 0, -50), seq(50, 150, 50))),"k")) +
   labs (x = "Population", 
         y = "Age Group", 
-        title='Singapore Age-Sex Population Pyramid') +
+        title='Animated Pyramid Visualisation of Population') +
   theme_bw() +
   theme(axis.ticks.y = element_blank())
   
@@ -186,9 +186,10 @@ fig <- plot_ly(popdata,
         y = ~AG,
         type = 'bar', 
         orientation = 'h',
-        hovertemplate = ~paste("<br>Age Group:", AG,
-                               "<br>Gender:", Sex,
-                               "<br>Population:", Count),
+        hovertemplate = ~paste("<br>Population:", Count,
+                               "<br>Age Group:", AG,
+                               "<br>Gender:", Sex
+                               ),
         color = ~Sex,
         transforms = list(list(type = 'filter',
                                target = ~Time,
@@ -200,13 +201,13 @@ fig <- plot_ly(popdata,
                                value = unique(popdata$PA)[1]))
                           )%>%
   layout(bargap = 0.1, barmode = 'overlay',
-         xaxis = list(title = "Population",
+         xaxis = list(title = "Population Count",
                       tickmode = 'array', tickvals = c(-10000, -8000, -6000, -4000, -2000, 0, 
                                                        2000, 4000, 6000, 8000, 10000),
                       ticktext = c('10k', '8k', '6k', '4k', '2k', '0', 
                                    '2k', '4k', '6k', '8k', '10k')),
          yaxis = list(title = "Age Group"),
-         title = 'Singapore Age-Sex Population Pyramid',
+         title = 'Interactive Pyramid Visualisation of Population',
          updatemenus = list(list(type = 'dropdown',
                                  x = 1.6, y = 0.6,
                                  buttons = PA_list)
@@ -216,9 +217,8 @@ fig <- plot_ly(popdata,
                           currentvalue = list(prefix = "Year: "), 
                           pad = list(t = 60), 
                           steps = year_list)), 
-         annotations = annot)
+         annotations = annot, autosize = F)
 
-fig <- fig %>% layout(autosize = F)
 fig
 
 ```
