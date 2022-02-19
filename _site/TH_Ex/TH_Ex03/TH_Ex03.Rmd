@@ -11,18 +11,161 @@ date: "`r Sys.Date()`"
 output: 
   distill::distill_article:
     code_folding: true
+    toc: true
+    toc_float: true
         
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, fig.width = 10,fig.height = 15)
 ```
 
-Distill is a publication format for scientific and technical writing, native to the web. 
+## Tasks
 
-Learn more about using Distill for R Markdown at <https://rstudio.github.io/distill>.
+In this take-home exercise, we are required to apply appropriate data visualisation techniques to accomplish the task given below:
+
+"Create a data visualisation showing average rating and proportion of cocoa percent (% chocolate) greater than or equal to 70% by top 15 company location. For the purpose of this task, *chocolate.csv* should be used."
+
+
+## Data Preparation
+
+### Installing and Launching R Packages
+
+Before we get started, we will need to install the relevant R packages. 
+
+```{r echo = TRUE}
+packages = c('ggpubr', 'tidyverse', 'readxl', 'knitr','plotly','ggdist', 'distributional')
+
+for(p in packages){library
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+
+  library(p, character.only = T)
+}
+```
+
+### Importing Data
+
+First, let us import the data into R by using the *read.csv* function. 
+
+```{r}
+chocdata <- read.csv("data/chocolate.csv")
+
+```
+
+Checking the data types of the columns in our dataframe shows that the *rating* column is in numeric format but the *cocoa_percent* column is in character format.
+
+```{r}
+str(chocdata)
+
+```
+
+### Cleaning Data
+
+Before we proceed further, we will need to convert the *cocoa_percent* column to numeric format in order to perform further calculations on the data.
+
+```{r}
+chocdata <- chocdata %>%
+  mutate(cocoa_percent = parse_number(cocoa_percent))
+
+```  
+
+Checking the data types of the columns once more, we can see that the *cocoa_percent* column have been converted to numeric format.
+
+```{r}
+str(chocdata)
+
+```
+<br>
+<br>
+Next, we will be preparing the data for rating and cocoa percent by company. First, a filter was applied on the *cocoa_percent* column to filter out cocoa percentages greater than or equal to 70%. Next, the dataset was grouped by company manufacturer for the rating and cocoa percent, and statistics such as the mean, count, standard deviation and standard error was calculated. 
+
+Next, two separate dataframes were created, one for cocoa percent and one for ratings. 
+
+Lastly, in order to have a more comprehensive analysis, all company manufacturers with only one rating was excluded from the analysis. To do so, the separate dataframes were filtered for number of ratings via the *n* column
+<br>
+
+```{r}
+chocdata <- filter(chocdata,cocoa_percent>=70)
+
+choccocoa <- chocdata %>%
+  group_by(company_manufacturer) %>%
+  summarise(
+    n = n(),
+    mean = mean(cocoa_percent),
+    sd = sd(cocoa_percent)
+  ) %>%
+  mutate(se = sd/sqrt(n-1))
+
+chocrating <- chocdata %>%
+  group_by(company_manufacturer) %>%
+  summarise(
+    n = n(),
+    mean = mean(rating),
+    sd = sd(rating)
+  ) %>%
+  mutate(se = sd/sqrt(n-1))
+
+choccocoa <- filter(choccocoa,n>1)
+chocrating <- filter(chocrating,n>1)
+
+```
+<br>
+Next, the dataframes were sorted in descending order by the mean values and the top 15 manufacturers were extracted.
+
+```{r}
+chocrating <- chocrating[order(-chocrating$mean),]
+chocrating <- head(chocrating, 15)
+choccocoa <- choccocoa[order(-choccocoa$mean),]
+choccocoa <- head(choccocoa, 15)
+
+
+```
+
+## Data Visualisation
+
+Finally, we employ *ggplot* and the *stat_halfeye()* function to show the uncertainty of point estimates for the rating and the cocoa percent for the top 15 manufacturers.
+
+```{r}
+
+ggplot(chocrating) +
+  aes(y = company_manufacturer, xdist = dist_normal(mean,sd)) +
+  stat_halfeye(
+    aes(
+      fill = stat(cut_cdf_qi(cdf),
+                  labels = scales::percent_format())
+      
+    )) +
+
+  scale_fill_brewer(direction = -1) +
+  theme(text = element_text(size=15)) +
+  theme(plot.title = element_text(size=12)) +
+  labs(
+    fill = "Interval")+
+  ggtitle("Difference in mean rating amongst top 15 Company Manufacturers")
+```
+```{r}
+
+ggplot(choccocoa) +
+  aes(y = company_manufacturer, xdist = dist_normal(mean,sd)) +
+  stat_halfeye(
+    aes(
+      fill = stat(cut_cdf_qi(cdf),
+                  labels = scales::percent_format())
+    )
+    
+  ) +  
+  
+  scale_fill_brewer(direction = -1) +
+  
+  theme(text = element_text(size=15)) +
+  theme(plot.title = element_text(size=12)) +
+  labs(
+    fill = "Interval")+
+  ggtitle("Difference in mean cocoa percent amongst top 15 Company Manufacturers")
 
 
 
-
+```
 
