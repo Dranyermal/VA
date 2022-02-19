@@ -1,0 +1,28 @@
+---
+title: "Take Home Exercise 3"
+description: |
+  In this exercise, we shall apply the skills we had learned in last two lessons to create data visualisation by using appropriate data visualisation techniques.
+author:
+  - name: Reynard Lam 
+    url: https://www.linkedin.com/in/reynard-lam-570644133/
+    affiliation: School of Computing and Information Systems, SMU
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    code_folding: true
+        
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Distill is a publication format for scientific and technical writing, native to the web. 
+
+Learn more about using Distill for R Markdown at <https://rstudio.github.io/distill>.
+
+
+
+
+
