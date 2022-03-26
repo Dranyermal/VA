@@ -1,3 +1,20 @@
+<<<<<<< HEAD
+---
+title: "Visual Analytics"
+description: |
+  This website consists of a collection of works done for Visual Analytics. Please access the links at the top to view Take-Home Exercises 1, 2, 3 and 4, as well as DataViz Makeover 1 and 2.
+site: distill::distill_website
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Learn more about creating websites with Distill at:
+# https://rstudio.github.io/distill/website.html
+
+```
+
+=======
 ---
 title: "Visual Analytics"
 description: |
@@ -13,3 +30,4 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```
 
+>>>>>>> 6a1e4ff85850b671baca5444bea6cb74f171973e
