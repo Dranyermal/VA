@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 name: "VA"
 title: "Visual Analytics"
 description: |
@@ -31,35 +30,3 @@ navbar:
         href: "TH_Ex/DataViz02/DataViz02.html"
       
 output: distill::distill_article
-=======
-name: "VA"
-title: "Visual Analytics"
-description: |
-  My Website
-output_dir: "_site"
-navbar:
-  right:
-    - text: "Home"
-      href: index.html
-    - text: "About"
-      href: about.html
-  left:
-    - text: "Take Home Exercise"
-      href: index.html
-      menu:
-      - text: "Take Home Exercise 1"
-        href: "TH_Ex/TH_Ex01/TH_Ex01.html"
-      - text: "Take Home Exercise 2"
-        href: "TH_Ex/TH_Ex02/TH_Ex02.html"
-      - text: "Take Home Exercise 3"
-        href: "TH_Ex/TH_Ex03/TH_Ex03.html"
-      - text: "Take Home Exercise 4"
-        href: "TH_Ex/TH_Ex04/TH_Ex04.html"
-    - text: "Data Viz Makeover"
-      href: about.html
-      menu:
-      - text: "DataViz Makeover 1"
-        href: "TH_Ex/DataViz01/DataViz01.html"
-      
-output: distill::distill_article
->>>>>>> 6a1e4ff85850b671baca5444bea6cb74f171973e
